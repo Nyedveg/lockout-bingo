@@ -70,7 +70,7 @@ export default function Home() {
     return next;
   }
 
-  if (error?.error === "blob_not_configured") {
+  if (error?.error === "store_not_configured") {
     return (
       <div className="app-shell">
         <div className="center-note">

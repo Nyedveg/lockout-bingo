@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { updateState, BlobNotConfiguredError } from "../../../lib/store";
+import { updateState, StoreNotConfiguredError } from "../../../lib/store";
 import { toggleCell, ClaimError } from "../../../lib/scoring";
 import { computeRemainingSeconds } from "../../../lib/timer";
 import { BOARD_CELLS } from "../../../lib/gameData";
@@ -29,8 +29,8 @@ export async function POST(request) {
       timer: { ...next.timer, remainingSeconds: computeRemainingSeconds(next.timer) },
     });
   } catch (err) {
-    if (err instanceof BlobNotConfiguredError) {
-      return NextResponse.json({ error: "blob_not_configured", message: err.message }, { status: 503 });
+    if (err instanceof StoreNotConfiguredError) {
+      return NextResponse.json({ error: "store_not_configured", message: err.message }, { status: 503 });
     }
     if (err instanceof ClaimError) {
       return NextResponse.json({ error: err.code, message: err.message }, { status: 409 });
