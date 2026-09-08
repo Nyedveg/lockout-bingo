@@ -1,0 +1,16 @@
+{
+  "name": "Lockout Bingo — Your Time Starts Now",
+  "short_name": "Lockout Bingo",
+  "description": "A 3-team Taskmaster-inspired lockout bingo party game.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#ece1c6",
+  "theme_color": "#211d17",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
