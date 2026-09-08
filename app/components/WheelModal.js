@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { TALENT_SHOW_BONUS } from "../../lib/gameData";
+import { TALENT_SHOW_BONUS, BOARD_CELLS } from "../../lib/gameData";
 
 const SEGMENTS = [
   { key: "shuffle", label: "Shuffle Board", color: "#7a1f2b" },
@@ -246,7 +246,7 @@ export default function WheelModal({ state, run, onClose }) {
                 <input
                   type="number"
                   min={1}
-                  max={25}
+                  max={BOARD_CELLS}
                   placeholder="Square #"
                   value={cellA}
                   onChange={(e) => setCellA(e.target.value)}
@@ -257,7 +257,7 @@ export default function WheelModal({ state, run, onClose }) {
                   disabled={!cellA}
                   onClick={() => {
                     const id = Number(cellA) - 1;
-                    if (id < 0 || id > 24) return;
+                    if (id < 0 || id >= BOARD_CELLS) return;
                     run("setCell", { cellId: id, updates: { multiplier: 2 } }, null);
                   }}
                 >
@@ -273,7 +273,7 @@ export default function WheelModal({ state, run, onClose }) {
                   <input
                     type="number"
                     min={1}
-                    max={25}
+                    max={BOARD_CELLS}
                     placeholder="Square #"
                     value={cellA}
                     onChange={(e) => setCellA(e.target.value)}
@@ -283,7 +283,7 @@ export default function WheelModal({ state, run, onClose }) {
                   <input
                     type="number"
                     min={1}
-                    max={25}
+                    max={BOARD_CELLS}
                     placeholder="Square #"
                     value={cellB}
                     onChange={(e) => setCellB(e.target.value)}
@@ -297,7 +297,7 @@ export default function WheelModal({ state, run, onClose }) {
                   onClick={() => {
                     const a = Number(cellA) - 1;
                     const b = Number(cellB) - 1;
-                    if (a < 0 || a > 24 || b < 0 || b > 24 || a === b) return;
+                    if (a < 0 || a >= BOARD_CELLS || b < 0 || b >= BOARD_CELLS || a === b) return;
                     run("swapCells", { cellIdA: a, cellIdB: b }, null);
                   }}
                 >

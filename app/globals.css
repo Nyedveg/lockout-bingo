@@ -34,6 +34,33 @@ body {
   -webkit-tap-highlight-color: transparent;
 }
 
+/* ---------- Force-landscape (player page only) ----------
+   No browser lets a plain page lock physical orientation outside
+   fullscreen/installed contexts (and iOS Safari never supports the
+   Orientation Lock API at all), so this rotates the whole document by
+   CSS when the device is held in portrait. The net effect: content only
+   reads right-side-up once the phone is turned to landscape, which is
+   what "forces" the layout in practice. Scoped to the .force-landscape
+   class (added only by <ForceLandscape/> on the player page) so /admin
+   is never affected. */
+@media screen and (orientation: portrait) {
+  html.force-landscape {
+    transform: rotate(90deg);
+    transform-origin: top left;
+    width: 100vh;
+    height: 100vw;
+    position: absolute;
+    top: 0;
+    left: 100%;
+    overflow-x: hidden;
+  }
+
+  html.force-landscape body {
+    width: 100vh;
+    min-height: 100vw;
+  }
+}
+
 h1,
 h2,
 h3,
@@ -52,7 +79,7 @@ a {
 }
 
 .app-shell {
-  max-width: 640px;
+  max-width: 860px;
   margin: 0 auto;
   padding: 14px 14px 48px;
   min-height: 100dvh;
@@ -307,13 +334,13 @@ a {
 
 .board-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   gap: 6px;
   margin-bottom: 18px;
 }
 
 .cell {
-  height: 138px;
+  height: 118px;
   border: 2.5px solid var(--ink);
   border-radius: 6px;
   background: var(--paper);
@@ -322,6 +349,10 @@ a {
   text-align: center;
   color: var(--ink);
   transition: transform 0.08s ease, opacity 0.15s ease;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
 }
 
 .cell:active:not(.pending) {
@@ -330,6 +361,43 @@ a {
 
 .cell.pending {
   opacity: 0.5;
+}
+
+.hold-fill {
+  position: absolute;
+  inset: 0;
+  transform: scaleY(0);
+  transform-origin: bottom;
+  transition: transform 1s linear;
+  pointer-events: none;
+  opacity: 0.9;
+}
+
+.cell.holding .hold-fill {
+  transform: scaleY(1);
+}
+
+.cell.holding {
+  animation: cell-shake 0.32s ease-in-out infinite;
+}
+
+@keyframes cell-shake {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  20% {
+    transform: translate(-1.5px, 1px) rotate(-1.5deg);
+  }
+  40% {
+    transform: translate(1.5px, -1px) rotate(1.5deg);
+  }
+  60% {
+    transform: translate(-1.5px, -1px) rotate(-1deg);
+  }
+  80% {
+    transform: translate(1.5px, 1px) rotate(1deg);
+  }
 }
 
 .cell .badges {
@@ -903,7 +971,7 @@ a {
 
 .admin-cell-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(6, 1fr);
   gap: 4px;
 }
 

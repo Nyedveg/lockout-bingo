@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { updateState, BlobNotConfiguredError } from "../../../lib/store";
 import { toggleCell, ClaimError } from "../../../lib/scoring";
 import { computeRemainingSeconds } from "../../../lib/timer";
+import { BOARD_CELLS } from "../../../lib/gameData";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +15,7 @@ export async function POST(request) {
   }
 
   const { teamId, cellId } = body || {};
-  if (![1, 2, 3].includes(teamId) || typeof cellId !== "number" || cellId < 0 || cellId > 24) {
+  if (![1, 2, 3].includes(teamId) || typeof cellId !== "number" || cellId < 0 || cellId >= BOARD_CELLS) {
     return NextResponse.json({ error: "bad_request", message: "Missing or invalid teamId/cellId" }, { status: 400 });
   }
 

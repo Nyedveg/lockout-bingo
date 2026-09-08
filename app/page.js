@@ -10,6 +10,7 @@ import ActivityFeed from "./components/ActivityFeed";
 import Toast from "./components/Toast";
 import RosterMenu from "./components/RosterMenu";
 import PromptPopup from "./components/PromptPopup";
+import ForceLandscape from "./components/ForceLandscape";
 
 const TEAM_KEY = "lb_team_id";
 const NAME_KEY = "lb_name";
@@ -98,6 +99,7 @@ export default function Home() {
 
   return (
     <div className="app-shell">
+      <ForceLandscape />
       <header className="masthead">
         <RosterMenu teams={state.teams} roster={state.roster} />
         <h1>Daninių Bingo</h1>

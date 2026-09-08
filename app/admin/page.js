@@ -6,6 +6,7 @@ import TimerDisplay from "../components/TimerDisplay";
 import Toast from "../components/Toast";
 import RosterMenu from "../components/RosterMenu";
 import WheelModal from "../components/WheelModal";
+import { BOARD_CELLS } from "../../lib/gameData";
 
 const PIN_KEY = "lb_admin_pin";
 
@@ -25,7 +26,7 @@ function parseBulkTasks(raw) {
     const numStr = line.slice(0, idx).trim();
     const text = line.slice(idx + 1).trim();
     const num = Number(numStr);
-    if (!Number.isInteger(num) || num < 1 || num > 25) {
+    if (!Number.isInteger(num) || num < 1 || num > BOARD_CELLS) {
       errors.push(`Invalid square number "${numStr}" in: "${line}"`);
       continue;
     }
@@ -373,7 +374,7 @@ function AdminPanel({ pin, onSignOut }) {
             <input
               type="number"
               min={1}
-              max={25}
+              max={BOARD_CELLS}
               placeholder="Square #"
               value={swapA}
               onChange={(e) => setSwapA(e.target.value)}
@@ -383,7 +384,7 @@ function AdminPanel({ pin, onSignOut }) {
             <input
               type="number"
               min={1}
-              max={25}
+              max={BOARD_CELLS}
               placeholder="Square #"
               value={swapB}
               onChange={(e) => setSwapB(e.target.value)}
@@ -394,8 +395,8 @@ function AdminPanel({ pin, onSignOut }) {
               onClick={() => {
                 const a = Number(swapA) - 1;
                 const b = Number(swapB) - 1;
-                if (a < 0 || a > 24 || b < 0 || b > 24 || a === b) {
-                  setToast("Pick two different squares 1–25");
+                if (a < 0 || a >= BOARD_CELLS || b < 0 || b >= BOARD_CELLS || a === b) {
+                  setToast(`Pick two different squares 1–${BOARD_CELLS}`);
                   return;
                 }
                 run("swapCells", { cellIdA: a, cellIdB: b }, `Swapped ${swapA} and ${swapB}`);
