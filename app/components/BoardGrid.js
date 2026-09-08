@@ -97,7 +97,7 @@ export default function BoardGrid({ board, teams, myTeamId, gameStarted, blinded
               owner ? `, claimed by ${owner.name}` : ""
             }. Press and hold for 1 second to ${isMine ? "remove your claim" : "claim"}.`}
           >
-            {isHolding && <div className="hold-fill" style={{ background: holdFillColor }} />}
+            <div className="hold-fill" style={{ background: holdFillColor }} />
             <div className="badges">
               <span>{cell.id + 1}</span>
               <span className="badge-right">

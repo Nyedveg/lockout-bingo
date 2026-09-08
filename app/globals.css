@@ -349,7 +349,7 @@ a {
   text-align: center;
   color: var(--ink);
   transition: transform 0.08s ease, opacity 0.15s ease;
-  touch-action: none;
+  touch-action: pan-y;
   -webkit-user-select: none;
   user-select: none;
   -webkit-touch-callout: none;
