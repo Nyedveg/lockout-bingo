@@ -100,7 +100,8 @@ export default function BoardGrid({ board, teams, myTeamId, gameStarted, blinded
         ]
           .filter(Boolean)
           .join(" ");
-        const holdFillColor = isMine ? "var(--ink)" : teams[myTeamId] && teams[myTeamId].color;
+        const holdFillColor = isMine ? "var(--paper)" : teams[myTeamId] && teams[myTeamId].color;
+        const fillOrigin = isMine ? "top" : "bottom";
         // Fill is "on" (full) while actively holding AND while waiting on
         // the server after a successful hold. It only ever transitions
         // (visibly grows/drains) during a genuine hold or a cancel — the
@@ -126,6 +127,7 @@ export default function BoardGrid({ board, teams, myTeamId, gameStarted, blinded
               className="hold-fill"
               style={{
                 background: holdFillColor,
+                transformOrigin: fillOrigin,
                 transform: fillOn ? "scaleY(1)" : "scaleY(0)",
                 transition: skipFillTransition ? "none" : "transform 1s linear",
               }}

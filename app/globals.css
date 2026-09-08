@@ -362,7 +362,6 @@ a {
 .hold-fill {
   position: absolute;
   inset: 0;
-  transform-origin: bottom;
   pointer-events: none;
   opacity: 0.9;
 }
