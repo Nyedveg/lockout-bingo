@@ -2,7 +2,21 @@ import { NextResponse } from "next/server";
 import { updateState, BlobNotConfiguredError } from "../../../lib/store";
 import { ADMIN_PIN, createInitialState, logEvent } from "../../../lib/gameData";
 import { startTimer, pauseTimer, resetTimer, computeRemainingSeconds } from "../../../lib/timer";
-import { adminSetCell, swapCells, adjustScore, renameTeam } from "../../../lib/adminActions";
+import {
+  adminSetCell,
+  swapCells,
+  adjustScore,
+  renameTeam,
+  applyRandomMultiplier,
+  wheelShuffleBoard,
+  wheelUnclaimRandom,
+  curseTeam,
+  startGamble,
+  clearPrompt,
+  startPrisonersDilemma,
+  resolvePrisonersDilemma,
+  startSpeedRound,
+} from "../../../lib/adminActions";
 
 export const dynamic = "force-dynamic";
 
@@ -48,6 +62,33 @@ export async function POST(request) {
           break;
         case "renameTeam":
           renameTeam(draft, payload.teamId, payload.name);
+          break;
+        case "randomMultiplier":
+          applyRandomMultiplier(draft, payload.multiplier);
+          break;
+        case "wheelShuffleBoard":
+          wheelShuffleBoard(draft);
+          break;
+        case "wheelUnclaimRandom":
+          wheelUnclaimRandom(draft);
+          break;
+        case "curseTeam":
+          curseTeam(draft, payload.teamId, payload.kind);
+          break;
+        case "startGamble":
+          startGamble(draft, payload.teamA, payload.teamB);
+          break;
+        case "startPrisonersDilemma":
+          startPrisonersDilemma(draft);
+          break;
+        case "resolvePrisonersDilemma":
+          resolvePrisonersDilemma(draft);
+          break;
+        case "clearPrompt":
+          clearPrompt(draft);
+          break;
+        case "startSpeedRound":
+          startSpeedRound(draft);
           break;
         case "resetGame": {
           const fresh = createInitialState();

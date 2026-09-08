@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import FitText from "./FitText";
 
-export default function BoardGrid({ board, teams, myTeamId, gameStarted, onToggle, onToast }) {
+export default function BoardGrid({ board, teams, myTeamId, gameStarted, blinded, onToggle, onToast }) {
   const [pendingId, setPendingId] = useState(null);
 
   async function handleTap(cell) {
@@ -53,23 +54,26 @@ export default function BoardGrid({ board, teams, myTeamId, gameStarted, onToggl
             className={classes}
             style={{ "--tc": owner ? owner.color : reservedForMe ? teams[myTeamId].color : "var(--gold)" }}
             onClick={() => handleTap(cell)}
-            aria-label={`Square ${cell.id + 1}: ${cell.task}${owner ? `, claimed by ${owner.name}` : ""}`}
+            aria-label={`Square ${cell.id + 1}: ${blinded ? "hidden by a curse" : cell.task}${
+              owner ? `, claimed by ${owner.name}` : ""
+            }`}
           >
             <div className="badges">
               <span>{cell.id + 1}</span>
-              <span>
-                {cell.multiplier > 1 ? `x${cell.multiplier} ` : ""}
-                {cell.reservedFor ? "🔒" : ""}
+              <span className="badge-right">
+                {cell.multiplier > 1 ? <span className="badge-chip badge-mult">x{cell.multiplier}</span> : null}
+                {cell.reservedFor ? <span className="badge-chip badge-lock">🔒</span> : null}
               </span>
             </div>
-            <span className="cell-text">{cell.task}</span>
+            <div className="cell-text-wrap">
+              {blinded ? <span className="cell-blinded">🙈 Hidden by a curse</span> : <FitText text={cell.task} />}
+            </div>
             {owner && (
               <span className="claimed-by">
                 {owner.name}
                 {isMine ? " · tap to undo" : ""}
               </span>
             )}
-            {cell.prize && <span className="prize-star">★</span>}
           </button>
         );
       })}

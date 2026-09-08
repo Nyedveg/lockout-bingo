@@ -5,6 +5,7 @@ import { useGameState, postAdmin } from "../hooks/useGameState";
 import TimerDisplay from "../components/TimerDisplay";
 import Toast from "../components/Toast";
 import RosterMenu from "../components/RosterMenu";
+import WheelModal from "../components/WheelModal";
 
 const PIN_KEY = "lb_admin_pin";
 
@@ -68,6 +69,8 @@ function AdminPanel({ pin, onSignOut }) {
   const [swapA, setSwapA] = useState("");
   const [swapB, setSwapB] = useState("");
   const [scoreDeltas, setScoreDeltas] = useState({});
+  const [nameEdits, setNameEdits] = useState({});
+  const [wheelOpen, setWheelOpen] = useState(false);
 
   useEffect(() => {
     if (!state || selectedCell === null) return;
@@ -81,8 +84,8 @@ function AdminPanel({ pin, onSignOut }) {
 
   async function run(type, payload, msg) {
     try {
-      await postAdmin(pin, type, payload);
-      setToast(msg || "Done");
+      const next = await postAdmin(pin, type, payload);
+      setToast(msg || (next.log && next.log[0] && next.log[0].text) || "Done");
       refresh();
     } catch (err) {
       if (err.status === 401) {
@@ -171,6 +174,43 @@ function AdminPanel({ pin, onSignOut }) {
       </div>
 
       <div className="admin-section">
+        <h2>Chaos wheel</h2>
+        <p className="status-note">Spin for a random effect, then apply it with a tap or two.</p>
+        <button className="btn btn-primary btn-block" onClick={() => setWheelOpen(true)}>
+          🎡 Spin the wheel
+        </button>
+      </div>
+
+      {state.pendingPrompt && (
+        <div className="admin-section">
+          <h2>Live prompt</h2>
+          {state.pendingPrompt.type === "gamble" && (
+            <p className="status-note">
+              Gamble: {state.teams[state.pendingPrompt.teamA].name} vs {state.teams[state.pendingPrompt.teamB].name}{" "}
+              — {state.pendingPrompt.status === "resolved" ? "resolved" : "waiting on target team to accept"}
+            </p>
+          )}
+          {state.pendingPrompt.type === "prisoners_dilemma" && (
+            <p className="status-note">
+              Prisoner's Dilemma — {state.pendingPrompt.status === "resolved" ? "resolved" : "voting open"}
+              {state.pendingPrompt.status === "voting" &&
+                ` (${Object.keys(state.pendingPrompt.votes || {}).length} votes so far)`}
+            </p>
+          )}
+          <div className="admin-row">
+            {state.pendingPrompt.type === "prisoners_dilemma" && state.pendingPrompt.status === "voting" && (
+              <button className="btn btn-sm" onClick={() => run("resolvePrisonersDilemma", {}, null)}>
+                Tally &amp; resolve
+              </button>
+            )}
+            <button className="btn btn-sm btn-ghost" onClick={() => run("clearPrompt", {}, "Popup cleared")}>
+              Clear popup
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="admin-section">
         <h2>Board</h2>
         <div className="admin-cell-grid">
           {state.board.map((cell) => (
@@ -246,6 +286,14 @@ function AdminPanel({ pin, onSignOut }) {
             >
               Apply to square {selectedCell + 1}
             </button>
+            <button
+              className="btn btn-sm"
+              style={{ marginTop: 10, marginLeft: 8 }}
+              title="Applies just the multiplier above to a random open square"
+              onClick={() => run("randomMultiplier", { multiplier: editMultiplier }, null)}
+            >
+              Apply x{editMultiplier} randomly
+            </button>
           </div>
         )}
 
@@ -294,29 +342,51 @@ function AdminPanel({ pin, onSignOut }) {
       <div className="admin-section">
         <h2>Teams &amp; bonus points</h2>
         {teamList.map((team) => (
-          <div key={team.id} className="admin-row" style={{ justifyContent: "space-between" }}>
-            <span className="team-pill" style={{ "--tc": team.color }}>
-              <span className="team-dot" />
-              {team.name} · {team.score}
-            </span>
-            <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+          <div key={team.id} style={{ marginBottom: 10 }}>
+            <div className="admin-row" style={{ justifyContent: "space-between" }}>
+              <span className="team-pill" style={{ "--tc": team.color }}>
+                <span className="team-dot" />
+                {team.name} · {team.score}
+              </span>
+              <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                <input
+                  type="number"
+                  style={{ width: 70 }}
+                  placeholder="±pts"
+                  value={scoreDeltas[team.id] ?? ""}
+                  onChange={(e) => setScoreDeltas({ ...scoreDeltas, [team.id]: e.target.value })}
+                />
+                <button
+                  className="btn btn-sm"
+                  onClick={() => {
+                    const delta = Number(scoreDeltas[team.id] || 0);
+                    if (!delta) return;
+                    run("adjustScore", { teamId: team.id, delta }, `${team.name} ${delta > 0 ? "+" : ""}${delta}`);
+                    setScoreDeltas({ ...scoreDeltas, [team.id]: "" });
+                  }}
+                >
+                  Apply
+                </button>
+              </div>
+            </div>
+            <div className="admin-row" style={{ marginTop: 4 }}>
               <input
-                type="number"
-                style={{ width: 70 }}
-                placeholder="±pts"
-                value={scoreDeltas[team.id] ?? ""}
-                onChange={(e) => setScoreDeltas({ ...scoreDeltas, [team.id]: e.target.value })}
+                type="text"
+                placeholder="Rename team"
+                value={nameEdits[team.id] ?? ""}
+                onChange={(e) => setNameEdits({ ...nameEdits, [team.id]: e.target.value })}
+                style={{ flex: 1, minWidth: 120 }}
               />
               <button
                 className="btn btn-sm"
                 onClick={() => {
-                  const delta = Number(scoreDeltas[team.id] || 0);
-                  if (!delta) return;
-                  run("adjustScore", { teamId: team.id, delta }, `${team.name} ${delta > 0 ? "+" : ""}${delta}`);
-                  setScoreDeltas({ ...scoreDeltas, [team.id]: "" });
+                  const name = (nameEdits[team.id] || "").trim();
+                  if (!name) return;
+                  run("renameTeam", { teamId: team.id, name }, `Renamed to ${name}`);
+                  setNameEdits({ ...nameEdits, [team.id]: "" });
                 }}
               >
-                Apply
+                Rename
               </button>
             </div>
           </div>
@@ -349,6 +419,7 @@ function AdminPanel({ pin, onSignOut }) {
       </div>
 
       <Toast message={toast} onDone={() => setToast("")} />
+      {wheelOpen && <WheelModal state={state} run={run} onClose={() => setWheelOpen(false)} />}
     </div>
   );
 }

@@ -9,6 +9,7 @@ import BoardGrid from "./components/BoardGrid";
 import ActivityFeed from "./components/ActivityFeed";
 import Toast from "./components/Toast";
 import RosterMenu from "./components/RosterMenu";
+import PromptPopup from "./components/PromptPopup";
 
 const TEAM_KEY = "lb_team_id";
 const NAME_KEY = "lb_name";
@@ -89,6 +90,12 @@ export default function Home() {
 
   const gameStarted = state.timer.running || state.timer.remainingSeconds < state.timer.durationSeconds;
 
+  const myCurses = (myTeamId && state.curses && state.curses[myTeamId]) || {};
+  const now = Date.now();
+  const blinded = !!(myCurses.blindUntil && myCurses.blindUntil > now);
+  const timeDilated = !!(myCurses.timeDilationUntil && myCurses.timeDilationUntil > now);
+  const speedRoundActive = !!(state.speedRound && !state.speedRound.consumed && state.speedRound.expiresAt > now);
+
   return (
     <div className="app-shell">
       <header className="masthead">
@@ -112,13 +119,35 @@ export default function Home() {
         <TeamSelect teams={state.teams} name={name} onNameChange={setName} onSelect={chooseTeam} joining={joining} />
       ) : (
         <>
-          <TimerDisplay timer={state.timer} />
+          <PromptPopup
+            prompt={state.pendingPrompt}
+            teams={state.teams}
+            myTeamId={myTeamId}
+            clientId={clientId}
+            applyState={applyState}
+            onToast={setToast}
+          />
+
+          {timeDilated ? (
+            <div className="curse-banner">⏳ Time Dilation — your clock is hidden for a while</div>
+          ) : (
+            <TimerDisplay timer={state.timer} />
+          )}
+
           <Scoreboard teams={state.teams} myTeamId={myTeamId} />
+
+          {speedRoundActive && (
+            <div className="curse-banner speed">⚡ Speed Round! First claim wins double points!</div>
+          )}
+
+          {blinded && <div className="curse-banner">🙈 Blindness — your tasks are hidden for a while</div>}
+
           <BoardGrid
             board={state.board}
             teams={state.teams}
             myTeamId={myTeamId}
             gameStarted={gameStarted}
+            blinded={blinded}
             onToggle={handleToggle}
             onToast={setToast}
           />

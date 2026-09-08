@@ -62,6 +62,17 @@ export async function postRoster(clientId, teamId, name) {
   return data;
 }
 
+export async function postPrompt(type, clientId, teamId, choice) {
+  const res = await fetch("/api/prompt", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ type, clientId, teamId, choice }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw Object.assign(new Error(data.message || "Action failed"), { code: data.error });
+  return data;
+}
+
 export async function postAdmin(pin, type, payload) {
   const res = await fetch("/api/admin", {
     method: "POST",
