@@ -100,7 +100,7 @@ export default function Home() {
     <div className="app-shell">
       <header className="masthead">
         <RosterMenu teams={state.teams} roster={state.roster} />
-        <h1>Lockout Bingo</h1>
+        <h1>Daninių Bingo</h1>
         <div className="tagline">Your time starts now.</div>
         {myTeamId && (
           <div className="team-pill-row">

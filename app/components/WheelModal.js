@@ -19,6 +19,10 @@ const SEGMENTS = [
   { key: "oops", label: "Oops", color: "#7a1f2b" },
   { key: "speedRound", label: "Speed Round", color: "#2b3a55" },
   { key: "talentShow", label: "Talent Show", color: "#123f2e" },
+  { key: "miniCombo", label: "Mini Combo x3", color: "#c68a2e" },
+  { key: "totalEclipse", label: "Total Eclipse", color: "#123f2e" },
+  { key: "pettyGamble", label: "Petty Gamble", color: "#c68a2e" },
+  { key: "highStakesGamble", label: "High Stakes Gamble", color: "#7a1f2b" },
 ];
 
 const SEG_ANGLE = 360 / SEGMENTS.length;
@@ -98,7 +102,11 @@ export default function WheelModal({ state, run, onClose }) {
             {SEGMENTS.map((s, i) => {
               const mid = i * SEG_ANGLE + SEG_ANGLE / 2;
               return (
-                <div key={s.key} className="wheel-label" style={{ transform: `rotate(${mid}deg) translateX(6px)` }}>
+                <div
+                  key={s.key}
+                  className="wheel-label"
+                  style={{ transform: `rotate(${mid - 90}deg) translateX(6px)` }}
+                >
                   {s.label}
                 </div>
               );
@@ -190,6 +198,18 @@ export default function WheelModal({ state, run, onClose }) {
               </>
             )}
 
+            {landed.key === "totalEclipse" && (
+              <>
+                <p>Curses every team with Blindness at once for 10 minutes. Chaos for everyone.</p>
+                <button
+                  className="btn btn-block"
+                  onClick={() => run("curseAllTeams", { kind: "blindness", durationMs: 10 * 60 * 1000 }, null)}
+                >
+                  Bring the eclipse
+                </button>
+              </>
+            )}
+
             {landed.key === "pd" && (
               <>
                 <p>
@@ -206,6 +226,15 @@ export default function WheelModal({ state, run, onClose }) {
               <>
                 <p>Adds a x5 multiplier to a random open square.</p>
                 <button className="btn btn-block" onClick={() => run("randomMultiplier", { multiplier: 5 }, null)}>
+                  Do it
+                </button>
+              </>
+            )}
+
+            {landed.key === "miniCombo" && (
+              <>
+                <p>Adds a x3 multiplier to a random open square — a lighter Combo.</p>
+                <button className="btn btn-block" onClick={() => run("randomMultiplier", { multiplier: 3 }, null)}>
                   Do it
                 </button>
               </>
@@ -277,9 +306,15 @@ export default function WheelModal({ state, run, onClose }) {
               </>
             )}
 
-            {landed.key === "gamble" && (
+            {(landed.key === "gamble" || landed.key === "pettyGamble" || landed.key === "highStakesGamble") && (
               <>
-                <p>Pick the challenger and the target team. The target gets an Accept prompt on their phones.</p>
+                <p>
+                  Pick the challenger and the target team. The target gets an unavoidable Accept prompt on their
+                  phones.{" "}
+                  {landed.key === "pettyGamble" && "Stakes: 1 point."}
+                  {landed.key === "highStakesGamble" && "Stakes: 6 points."}
+                  {landed.key === "gamble" && "Stakes: 3 points."}
+                </p>
                 <div className="field-label">Challenger</div>
                 <div className="wheel-team-picker">
                   {teams.map((t) => (
@@ -310,7 +345,10 @@ export default function WheelModal({ state, run, onClose }) {
                 <button
                   className="btn btn-block"
                   disabled={!teamA || !teamB || teamA === teamB}
-                  onClick={() => run("startGamble", { teamA, teamB }, null)}
+                  onClick={() => {
+                    const stakes = landed.key === "pettyGamble" ? 1 : landed.key === "highStakesGamble" ? 6 : 3;
+                    run("startGamble", { teamA, teamB, stakes }, null);
+                  }}
                 >
                   Send challenge
                 </button>
@@ -320,7 +358,7 @@ export default function WheelModal({ state, run, onClose }) {
             {landed.key === "oops" && (
               <>
                 <p>Unclaims one random claimed square on the board.</p>
-                <button className="btn btn-block" onClick={() => run("wheelUnclaimRandom", {}, null)}>
+                <button className="btn btn-block" onClick={() => run("wheelUnclaimRandom", { count: 1 }, null)}>
                   Do it
                 </button>
               </>

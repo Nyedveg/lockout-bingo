@@ -4,20 +4,20 @@ import SWRegister from "./components/SWRegister";
 
 const specialElite = Special_Elite({
   weight: "400",
-  subsets: ["latin"],
+  subsets: ["latin", "latin-ext"], // latin-ext covers Lithuanian diacritics (ą č ę ė į š ų ū ž)
   variable: "--font-stamp",
   display: "swap",
 });
 
 const courierPrime = Courier_Prime({
   weight: ["400", "700"],
-  subsets: ["latin"],
+  subsets: ["latin", "latin-ext"],
   variable: "--font-type",
   display: "swap",
 });
 
 export const metadata = {
-  title: "Lockout Bingo — Your Time Starts Now",
+  title: "Daninių Bingo",
   description: "A 3-team Taskmaster-inspired lockout bingo party game.",
   manifest: "/manifest.json",
   icons: {
@@ -27,7 +27,7 @@ export const metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Lockout Bingo",
+    title: "Daninių Bingo",
   },
 };
 

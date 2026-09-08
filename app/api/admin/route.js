@@ -8,9 +8,11 @@ import {
   adjustScore,
   renameTeam,
   applyRandomMultiplier,
+  bulkSetTasks,
   wheelShuffleBoard,
   wheelUnclaimRandom,
   curseTeam,
+  curseAllTeams,
   startGamble,
   clearPrompt,
   startPrisonersDilemma,
@@ -66,17 +68,23 @@ export async function POST(request) {
         case "randomMultiplier":
           applyRandomMultiplier(draft, payload.multiplier);
           break;
+        case "bulkSetTasks":
+          bulkSetTasks(draft, payload.tasks || {});
+          break;
         case "wheelShuffleBoard":
           wheelShuffleBoard(draft);
           break;
         case "wheelUnclaimRandom":
-          wheelUnclaimRandom(draft);
+          wheelUnclaimRandom(draft, payload.count || 1);
           break;
         case "curseTeam":
-          curseTeam(draft, payload.teamId, payload.kind);
+          curseTeam(draft, payload.teamId, payload.kind, payload.durationMs);
+          break;
+        case "curseAllTeams":
+          curseAllTeams(draft, payload.kind, payload.durationMs);
           break;
         case "startGamble":
-          startGamble(draft, payload.teamA, payload.teamB);
+          startGamble(draft, payload.teamA, payload.teamB, payload.stakes);
           break;
         case "startPrisonersDilemma":
           startPrisonersDilemma(draft);

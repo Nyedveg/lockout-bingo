@@ -9,6 +9,35 @@ import WheelModal from "../components/WheelModal";
 
 const PIN_KEY = "lb_admin_pin";
 
+function parseBulkTasks(raw) {
+  const lines = raw
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean);
+  const tasks = {};
+  const errors = [];
+  for (const line of lines) {
+    const idx = line.indexOf(";");
+    if (idx === -1) {
+      errors.push(`No ";" found: "${line}"`);
+      continue;
+    }
+    const numStr = line.slice(0, idx).trim();
+    const text = line.slice(idx + 1).trim();
+    const num = Number(numStr);
+    if (!Number.isInteger(num) || num < 1 || num > 25) {
+      errors.push(`Invalid square number "${numStr}" in: "${line}"`);
+      continue;
+    }
+    if (!text) {
+      errors.push(`Empty task text for square ${num}`);
+      continue;
+    }
+    tasks[num - 1] = text;
+  }
+  return { tasks, errors };
+}
+
 export default function AdminPage() {
   const [pin, setPin] = useState(null);
   const [pinInput, setPinInput] = useState("");
@@ -71,6 +100,7 @@ function AdminPanel({ pin, onSignOut }) {
   const [scoreDeltas, setScoreDeltas] = useState({});
   const [nameEdits, setNameEdits] = useState({});
   const [wheelOpen, setWheelOpen] = useState(false);
+  const [bulkText, setBulkText] = useState("");
 
   useEffect(() => {
     if (!state || selectedCell === null) return;
@@ -155,6 +185,15 @@ function AdminPanel({ pin, onSignOut }) {
       </header>
 
       <div className="admin-section">
+        <h2>Share with players</h2>
+        <p className="status-note">Have people scan this to jump straight to the join screen.</p>
+        <div className="qr-card">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/qr.svg" alt="QR code to join the game" width={200} height={200} />
+        </div>
+      </div>
+
+      <div className="admin-section">
         <h2>Clock</h2>
         <TimerDisplay timer={state.timer} />
         <div className="admin-row">
@@ -212,6 +251,37 @@ function AdminPanel({ pin, onSignOut }) {
 
       <div className="admin-section">
         <h2>Board</h2>
+
+        <div style={{ marginBottom: 16, borderBottom: "2px dashed var(--ink-soft)", paddingBottom: 14 }}>
+          <label className="field-label">Batch-load tasks — one per line, "square number;task text"</label>
+          <textarea
+            rows={5}
+            placeholder={"1;Bring in the most unusual item\n2;Pop the balloons without using your hands\n3;..."}
+            value={bulkText}
+            onChange={(e) => setBulkText(e.target.value)}
+          />
+          <button
+            className="btn btn-sm"
+            style={{ marginTop: 6 }}
+            onClick={() => {
+              const { tasks, errors } = parseBulkTasks(bulkText);
+              const count = Object.keys(tasks).length;
+              if (!count) {
+                setToast(errors.length ? errors[0] : "Nothing to load");
+                return;
+              }
+              run(
+                "bulkSetTasks",
+                { tasks },
+                `Loaded ${count} task${count === 1 ? "" : "s"}${errors.length ? `, skipped ${errors.length}` : ""}`
+              );
+              if (!errors.length) setBulkText("");
+            }}
+          >
+            Load tasks
+          </button>
+        </div>
+
         <div className="admin-cell-grid">
           {state.board.map((cell) => (
             <button

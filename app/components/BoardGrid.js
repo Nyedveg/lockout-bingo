@@ -65,9 +65,13 @@ export default function BoardGrid({ board, teams, myTeamId, gameStarted, blinded
                 {cell.reservedFor ? <span className="badge-chip badge-lock">🔒</span> : null}
               </span>
             </div>
-            <div className="cell-text-wrap">
-              {blinded ? <span className="cell-blinded">🙈 Hidden by a curse</span> : <FitText text={cell.task} />}
-            </div>
+            {blinded ? (
+              <div className="cell-text-wrap">
+                <span className="cell-blinded">🙈 Hidden by a curse</span>
+              </div>
+            ) : (
+              <FitText text={cell.task} />
+            )}
             {owner && (
               <span className="claimed-by">
                 {owner.name}
