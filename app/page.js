@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useGameState, postAction, postRoster } from "./hooks/useGameState";
 import TeamSelect from "./components/TeamSelect";
 import TimerDisplay from "./components/TimerDisplay";
@@ -11,6 +11,7 @@ import Toast from "./components/Toast";
 import RosterMenu from "./components/RosterMenu";
 import PromptPopup from "./components/PromptPopup";
 import ForceLandscape from "./components/ForceLandscape";
+import { SOUNDS, playSound } from "./lib/audio";
 
 const TEAM_KEY = "lb_team_id";
 const NAME_KEY = "lb_name";
@@ -34,6 +35,7 @@ export default function Home() {
   const [name, setName] = useState("");
   const [joining, setJoining] = useState(false);
   const [toast, setToast] = useState("");
+  const notifiedRef = useRef({ promptId: null, speedRoundAt: null, blindAt: null, dilationAt: null });
 
   useEffect(() => {
     setClientId(getOrCreateClientId());
@@ -42,6 +44,33 @@ export default function Home() {
     const savedName = localStorage.getItem(NAME_KEY);
     if (savedName) setName(savedName);
   }, []);
+
+  // Plays a notification sound the moment something newly starts needing
+  // attention (a Gamble/Prisoner's Dilemma prompt, a Speed Round, or a
+  // curse landing on my own team) — tracked by ref so it fires once per
+  // event, not on every 3s poll while the same thing is still active.
+  useEffect(() => {
+    if (!state || !myTeamId) return;
+    const notified = notifiedRef.current;
+
+    if (state.pendingPrompt && state.pendingPrompt.id !== notified.promptId) {
+      notified.promptId = state.pendingPrompt.id;
+      playSound(SOUNDS.notification);
+    }
+    if (state.speedRound && state.speedRound.expiresAt !== notified.speedRoundAt) {
+      notified.speedRoundAt = state.speedRound.expiresAt;
+      playSound(SOUNDS.notification);
+    }
+    const myCurses = (state.curses && state.curses[myTeamId]) || {};
+    if (myCurses.blindUntil && myCurses.blindUntil !== notified.blindAt) {
+      notified.blindAt = myCurses.blindUntil;
+      playSound(SOUNDS.notification);
+    }
+    if (myCurses.timeDilationUntil && myCurses.timeDilationUntil !== notified.dilationAt) {
+      notified.dilationAt = myCurses.timeDilationUntil;
+      playSound(SOUNDS.notification);
+    }
+  }, [state, myTeamId]);
 
   async function chooseTeam(teamId) {
     if (!clientId || !name.trim() || joining) return;

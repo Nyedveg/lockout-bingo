@@ -359,22 +359,12 @@ a {
   transform: translate(2px, 2px);
 }
 
-.cell.pending {
-  opacity: 0.5;
-}
-
 .hold-fill {
   position: absolute;
   inset: 0;
-  transform: scaleY(0);
   transform-origin: bottom;
-  transition: transform 1s linear;
   pointer-events: none;
   opacity: 0.9;
-}
-
-.cell.holding .hold-fill {
-  transform: scaleY(1);
 }
 
 .cell.holding {
@@ -657,41 +647,54 @@ a {
   margin-bottom: 0;
 }
 
-.mini-wheel-caption {
+.dice-row {
   display: flex;
-  justify-content: space-between;
-  font-size: 0.75rem;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  margin: 6px 0 14px;
+}
+
+.die {
+  border: 3px solid var(--tc, var(--ink));
+  border-radius: 12px;
+  background: var(--paper);
+  width: 84px;
+  padding: 10px 6px;
+  text-align: center;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.die-label {
+  display: block;
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--tc, var(--ink));
   font-weight: bold;
-  margin-bottom: 8px;
-  padding: 0 6px;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.mini-wheel-wrap {
-  position: relative;
-  width: 150px;
-  height: 150px;
-  margin: 0 auto 14px;
+.die-face {
+  display: block;
+  font-family: var(--font-stamp), monospace;
+  font-size: 2.2rem;
+  line-height: 1;
 }
 
-.mini-wheel-pointer {
-  position: absolute;
-  top: -5px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 0;
-  height: 0;
-  border-left: 8px solid transparent;
-  border-right: 8px solid transparent;
-  border-top: 14px solid var(--ink);
-  z-index: 5;
+.die-winner {
+  box-shadow: 0 0 0 4px var(--gold);
+  transform: translateY(-3px);
 }
 
-.mini-wheel-face {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  border: 3px solid var(--ink);
-  transition: transform 3.2s cubic-bezier(0.15, 0.65, 0.15, 1);
+.dice-vs {
+  font-family: var(--font-stamp), monospace;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  text-transform: uppercase;
 }
 
 /* ---------- Wheel ---------- */

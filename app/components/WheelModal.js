@@ -154,15 +154,13 @@ export default function WheelModal({ state, run, onClose }) {
             {(landed.key === "blindness" ||
               landed.key === "timeDilation" ||
               landed.key === "bonus" ||
-              landed.key === "yikes" ||
-              landed.key === "bookAppt") && (
+              landed.key === "yikes") && (
               <>
                 <p>
                   {landed.key === "blindness" && "Curse a team — they can't see their tasks for 15 minutes."}
                   {landed.key === "timeDilation" && "Curse a team — they can't see the clock for 30 minutes."}
                   {landed.key === "bonus" && "Give a team 1 free point."}
                   {landed.key === "yikes" && "A team loses 1 point."}
-                  {landed.key === "bookAppt" && "Reserve a random open square for a team."}
                 </p>
                 <div className="wheel-team-picker">
                   {teams.map((t) => (
@@ -185,15 +183,60 @@ export default function WheelModal({ state, run, onClose }) {
                       run("curseTeam", { teamId: teamA, kind: "timeDilation" }, null);
                     else if (landed.key === "bonus") run("adjustScore", { teamId: teamA, delta: 1 }, null);
                     else if (landed.key === "yikes") run("adjustScore", { teamId: teamA, delta: -1 }, null);
-                    else if (landed.key === "bookAppt") {
-                      const open = state.board.filter((c) => !c.claimedBy);
-                      if (!open.length) return;
-                      const cell = open[Math.floor(Math.random() * open.length)];
-                      run("setCell", { cellId: cell.id, updates: { reservedFor: teamA } }, null);
-                    }
                   }}
                 >
                   Apply to {teamA ? teams.find((t) => t.id === teamA)?.name : "…"}
+                </button>
+              </>
+            )}
+
+            {landed.key === "bookAppt" && (
+              <>
+                <p>Reserve a square for a team — pick one, or leave blank for a random open square.</p>
+                <div className="wheel-team-picker">
+                  {teams.map((t) => (
+                    <button
+                      key={t.id}
+                      className={`wheel-team-btn${teamA === t.id ? " selected" : ""}`}
+                      style={{ "--tc": t.color }}
+                      onClick={() => setTeamA(t.id)}
+                    >
+                      {t.name}
+                    </button>
+                  ))}
+                </div>
+                <input
+                  type="number"
+                  min={1}
+                  max={BOARD_CELLS}
+                  placeholder={`Square # (optional, 1–${BOARD_CELLS})`}
+                  value={cellA}
+                  onChange={(e) => setCellA(e.target.value)}
+                  style={{ marginBottom: 8 }}
+                />
+                <button
+                  className="btn btn-block"
+                  disabled={!teamA}
+                  onClick={() => {
+                    let cellId;
+                    if (cellA) {
+                      const id = Number(cellA) - 1;
+                      if (id < 0 || id >= BOARD_CELLS) {
+                        return;
+                      }
+                      if (state.board[id].claimedBy) {
+                        return;
+                      }
+                      cellId = id;
+                    } else {
+                      const open = state.board.filter((c) => !c.claimedBy);
+                      if (!open.length) return;
+                      cellId = open[Math.floor(Math.random() * open.length)].id;
+                    }
+                    run("setCell", { cellId, updates: { reservedFor: teamA } }, null);
+                  }}
+                >
+                  Reserve for {teamA ? teams.find((t) => t.id === teamA)?.name : "…"}
                 </button>
               </>
             )}

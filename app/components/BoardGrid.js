@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import FitText from "./FitText";
+import { SOUNDS, playSound, stopHoldSounds } from "../lib/audio";
 
 const HOLD_MS = 1000;
 
@@ -9,12 +10,17 @@ export default function BoardGrid({ board, teams, myTeamId, gameStarted, blinded
   const [holdingId, setHoldingId] = useState(null);
   const [pendingId, setPendingId] = useState(null);
   const timerRef = useRef(null);
+  // Cells whose fill just finished a full claim/unclaim cycle — for one
+  // render, their fill transition is suppressed so it can snap invisible
+  // instantly instead of visibly draining back down (see the CSS note).
+  const justCompletedRef = useRef(new Set());
 
   // Safety net: cancel any in-flight hold timer if the component unmounts
   // (e.g. the player switches teams) while a press is in progress.
   useEffect(() => {
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
+      stopHoldSounds();
     };
   }, []);
 
@@ -22,6 +28,7 @@ export default function BoardGrid({ board, teams, myTeamId, gameStarted, blinded
     if (timerRef.current) {
       clearTimeout(timerRef.current);
       timerRef.current = null;
+      stopHoldSounds();
     }
     setHoldingId(null);
   }
@@ -44,8 +51,15 @@ export default function BoardGrid({ board, teams, myTeamId, gameStarted, blinded
     }
 
     setHoldingId(cell.id);
+    playSound(isMine ? SOUNDS.dropper : SOUNDS.riser);
+
     timerRef.current = setTimeout(async () => {
       timerRef.current = null;
+      stopHoldSounds();
+      playSound(SOUNDS.pop);
+      // Freeze the fill at "full" instead of letting it drain back down —
+      // it'll be hidden instantly (no animation) once the action resolves.
+      justCompletedRef.current.add(cell.id);
       setHoldingId(null);
       setPendingId(cell.id);
       try {
@@ -55,6 +69,9 @@ export default function BoardGrid({ board, teams, myTeamId, gameStarted, blinded
         onToast(e.message || "Couldn't update that square");
       } finally {
         setPendingId(null);
+        requestAnimationFrame(() => {
+          justCompletedRef.current.delete(cell.id);
+        });
       }
     }, HOLD_MS);
   }
@@ -72,16 +89,24 @@ export default function BoardGrid({ board, teams, myTeamId, gameStarted, blinded
         const isMine = cell.claimedBy === myTeamId;
         const reservedForMe = !cell.claimedBy && cell.reservedFor === myTeamId;
         const isHolding = holdingId === cell.id;
+        const isPendingThis = pendingId === cell.id;
+        const justCompleted = justCompletedRef.current.has(cell.id);
         const classes = [
           "cell",
           owner ? "claimed" : "",
           cell.reservedFor ? "reserved" : "",
-          pendingId === cell.id ? "pending" : "",
+          isPendingThis ? "pending" : "",
           isHolding ? "holding" : "",
         ]
           .filter(Boolean)
           .join(" ");
         const holdFillColor = isMine ? "var(--ink)" : teams[myTeamId] && teams[myTeamId].color;
+        // Fill is "on" (full) while actively holding AND while waiting on
+        // the server after a successful hold. It only ever transitions
+        // (visibly grows/drains) during a genuine hold or a cancel — the
+        // hold->pending and pending->done handoffs are instant, no transition.
+        const fillOn = isHolding || isPendingThis;
+        const skipFillTransition = isPendingThis || justCompleted;
 
         return (
           <button
@@ -97,7 +122,14 @@ export default function BoardGrid({ board, teams, myTeamId, gameStarted, blinded
               owner ? `, claimed by ${owner.name}` : ""
             }. Press and hold for 1 second to ${isMine ? "remove your claim" : "claim"}.`}
           >
-            <div className="hold-fill" style={{ background: holdFillColor }} />
+            <div
+              className="hold-fill"
+              style={{
+                background: holdFillColor,
+                transform: fillOn ? "scaleY(1)" : "scaleY(0)",
+                transition: skipFillTransition ? "none" : "transform 1s linear",
+              }}
+            />
             <div className="badges">
               <span>{cell.id + 1}</span>
               <span className="badge-right">
