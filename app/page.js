@@ -99,18 +99,27 @@ export default function Home() {
     return next;
   }
 
-  if (error?.error === "store_not_configured") {
-    return (
-      <div className="app-shell">
-        <div className="center-note">
-          <h2 className="stamp-font">Almost there</h2>
-          <p>{error.message}</p>
-        </div>
-      </div>
-    );
-  }
-
   if (!state) {
+    if (error?.error === "store_not_configured") {
+      return (
+        <div className="app-shell">
+          <div className="center-note">
+            <h2 className="stamp-font">Almost there</h2>
+            <p>{error.message}</p>
+          </div>
+        </div>
+      );
+    }
+    if (error) {
+      return (
+        <div className="app-shell">
+          <div className="center-note">
+            <h2 className="stamp-font">Something's wrong</h2>
+            <p>{error.message || "Couldn't load the game — please try again in a moment."}</p>
+          </div>
+        </div>
+      );
+    }
     return (
       <div className="app-shell">
         <div className="center-note">Loading the board…</div>
