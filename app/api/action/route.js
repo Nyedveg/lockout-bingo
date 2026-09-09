@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { updateState, BlobNotConfiguredError } from "../../../lib/store";
+import { updateState, StoreNotConfiguredError } from "../../../lib/store";
 import { toggleCell, ClaimError } from "../../../lib/scoring";
 import { computeRemainingSeconds } from "../../../lib/timer";
+import { BOARD_CELLS } from "../../../lib/gameData";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +15,7 @@ export async function POST(request) {
   }
 
   const { teamId, cellId } = body || {};
-  if (![1, 2, 3].includes(teamId) || typeof cellId !== "number" || cellId < 0 || cellId > 24) {
+  if (![1, 2, 3].includes(teamId) || typeof cellId !== "number" || cellId < 0 || cellId >= BOARD_CELLS) {
     return NextResponse.json({ error: "bad_request", message: "Missing or invalid teamId/cellId" }, { status: 400 });
   }
 
@@ -28,8 +29,8 @@ export async function POST(request) {
       timer: { ...next.timer, remainingSeconds: computeRemainingSeconds(next.timer) },
     });
   } catch (err) {
-    if (err instanceof BlobNotConfiguredError) {
-      return NextResponse.json({ error: "blob_not_configured", message: err.message }, { status: 503 });
+    if (err instanceof StoreNotConfiguredError) {
+      return NextResponse.json({ error: "store_not_configured", message: err.message }, { status: 503 });
     }
     if (err instanceof ClaimError) {
       return NextResponse.json({ error: err.code, message: err.message }, { status: 409 });

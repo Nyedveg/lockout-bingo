@@ -2,12 +2,14 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-const POLL_MS = 3000;
+const FAST_POLL_MS = 2000; // while waiting for the clock to start (or resume from a pause)
+const SLOW_POLL_MS = 6000; // once it's actually running
 
 export function useGameState() {
   const [state, setState] = useState(null);
   const [error, setError] = useState(null);
-  const timerRef = useRef(null);
+  const timeoutRef = useRef(null);
+  const stateRef = useRef(null);
 
   const fetchState = useCallback(async () => {
     try {
@@ -19,20 +21,53 @@ export function useGameState() {
       }
       setError(null);
       setState(data);
+      stateRef.current = data;
     } catch (e) {
       setError({ error: "network_error", message: "Can't reach the server." });
     }
   }, []);
 
   useEffect(() => {
-    fetchState();
-    timerRef.current = setInterval(fetchState, POLL_MS);
+    function nextDelay() {
+      const timer = stateRef.current && stateRef.current.timer;
+      // Fast whenever the clock isn't actively counting down — covers
+      // both "hasn't started yet" and "admin just paused it" — so the
+      // moment it starts or resumes, everyone's board unlocks within a
+      // couple seconds instead of being stuck on stale data for up to
+      // the full slow-poll interval.
+      return timer && timer.running ? SLOW_POLL_MS : FAST_POLL_MS;
+    }
+
+    function clearScheduled() {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
+    }
+
+    function scheduleNext() {
+      clearScheduled();
+      timeoutRef.current = setTimeout(async () => {
+        await fetchState();
+        scheduleNext();
+      }, nextDelay());
+    }
+
+    fetchState().then(scheduleNext);
+
+    // A locked/backgrounded phone doesn't need to keep polling — pause
+    // entirely while hidden, and catch up immediately (rescheduling at
+    // whatever speed is now appropriate) the moment it's looked at again.
     const onVisible = () => {
-      if (document.visibilityState === "visible") fetchState();
+      if (document.visibilityState === "visible") {
+        fetchState().then(scheduleNext);
+      } else {
+        clearScheduled();
+      }
     };
     document.addEventListener("visibilitychange", onVisible);
     return () => {
-      clearInterval(timerRef.current);
+      clearScheduled();
       document.removeEventListener("visibilitychange", onVisible);
     };
   }, [fetchState]);

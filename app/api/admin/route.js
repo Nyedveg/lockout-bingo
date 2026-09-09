@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { updateState, BlobNotConfiguredError } from "../../../lib/store";
+import { updateState, StoreNotConfiguredError } from "../../../lib/store";
 import { ADMIN_PIN, createInitialState, logEvent } from "../../../lib/gameData";
 import { startTimer, pauseTimer, resetTimer, computeRemainingSeconds } from "../../../lib/timer";
 import {
@@ -107,14 +107,14 @@ export async function POST(request) {
           throw new Error(`Unknown admin action: ${type}`);
       }
       return draft;
-    });
+    }, { clearEventsFirst: type === "resetGame" });
     return NextResponse.json({
       ...next,
       timer: { ...next.timer, remainingSeconds: computeRemainingSeconds(next.timer) },
     });
   } catch (err) {
-    if (err instanceof BlobNotConfiguredError) {
-      return NextResponse.json({ error: "blob_not_configured", message: err.message }, { status: 503 });
+    if (err instanceof StoreNotConfiguredError) {
+      return NextResponse.json({ error: "store_not_configured", message: err.message }, { status: 503 });
     }
     console.error(err);
     return NextResponse.json({ error: "server_error", message: String(err.message || err) }, { status: 500 });

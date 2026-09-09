@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { postPrompt } from "../hooks/useGameState";
-import GambleWheel from "./GambleWheel";
+import DiceRoll from "./DiceRoll";
 
 const PD_CARD_URL = "https://gatherer.wizards.com/MKC/en-us/34/prisoners-dilemma";
 
@@ -62,9 +62,11 @@ export default function PromptPopup({ prompt, teams, myTeamId, clientId, applySt
           <div className="prompt-card">
             <h3>🎲 Gamble!</h3>
             {!animDone ? (
-              <GambleWheel
+              <DiceRoll
                 teamA={teamA}
                 teamB={teamB}
+                rollA={prompt.rollA}
+                rollB={prompt.rollB}
                 winnerIsA={prompt.winner === prompt.teamA}
                 isTie={!prompt.winner}
                 onDone={() => setAnimDone(true)}
