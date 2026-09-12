@@ -138,6 +138,9 @@ export default function PromptPopup({ prompt, teams, myTeamId, clientId, applySt
               </span>
             </div>
           ))}
+          <button className="btn" style={{ marginTop: 10 }} onClick={() => setDismissedId(prompt.id)}>
+            Got it
+          </button>
         </div>
       );
     }

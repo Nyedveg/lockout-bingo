@@ -40,7 +40,7 @@ export const viewport = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${specialElite.variable} ${courierPrime.variable}`}>
+    <html lang="lt" className={`${specialElite.variable} ${courierPrime.variable}`}>
       <body>
         {children}
         <SWRegister />

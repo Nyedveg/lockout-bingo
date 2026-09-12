@@ -133,16 +133,18 @@ function AdminPanel({ pin, onSignOut }) {
       const res = await fetch("/api/events", { headers: { "x-admin-pin": pin } });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Export failed");
-      const blob = new Blob([JSON.stringify(data.events, null, 2)], { type: "application/json" });
+      const blob = new Blob([JSON.stringify({ log: data.log, events: data.events }, null, 2)], {
+        type: "application/json",
+      });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `lockout-bingo-events-${Date.now()}.json`;
+      a.download = `lockout-bingo-log-${Date.now()}.json`;
       document.body.appendChild(a);
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
-      setToast(`Exported ${data.events.length} events`);
+      setToast(`Exported ${data.log.length} log lines, ${data.events.length} events`);
     } catch (err) {
       setToast(err.message || "Export failed");
     }
@@ -476,11 +478,11 @@ function AdminPanel({ pin, onSignOut }) {
       <div className="admin-section">
         <h2>Data &amp; export</h2>
         <p className="status-note">
-          Every claim, removal, and admin action is logged with a timestamp and board position — download it
-          after the party to build a visualization of how the game unfolded.
+          The play-by-play and every structured event are kept server-side only — nothing players' phones poll for
+          — and only ever downloaded here, after the party.
         </p>
         <button className="btn btn-block" onClick={downloadEvents}>
-          Download event log (JSON)
+          Download game log (JSON)
         </button>
       </div>
 

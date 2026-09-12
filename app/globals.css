@@ -828,43 +828,6 @@ a {
   color: var(--paper);
 }
 
-/* ---------- Activity feed ---------- */
-
-.feed {
-  border-top: 2px dashed var(--ink-soft);
-  padding-top: 10px;
-  margin-top: 6px;
-}
-
-.feed h3 {
-  font-size: 0.8rem;
-  text-transform: uppercase;
-  color: var(--ink-soft);
-  margin: 0 0 6px;
-}
-
-.feed ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  font-size: 0.78rem;
-  color: var(--ink-soft);
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  max-height: 160px;
-  overflow-y: auto;
-}
-
-.feed-time {
-  font-family: var(--font-stamp), monospace;
-  font-size: 0.68rem;
-  color: var(--ink-soft);
-  opacity: 0.75;
-  margin-right: 6px;
-  white-space: nowrap;
-}
-
 /* ---------- Modal ---------- */
 
 .overlay {

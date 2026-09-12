@@ -6,7 +6,6 @@ import TeamSelect from "./components/TeamSelect";
 import TimerDisplay from "./components/TimerDisplay";
 import Scoreboard from "./components/Scoreboard";
 import BoardGrid from "./components/BoardGrid";
-import ActivityFeed from "./components/ActivityFeed";
 import Toast from "./components/Toast";
 import RosterMenu from "./components/RosterMenu";
 import PromptPopup from "./components/PromptPopup";
@@ -191,7 +190,6 @@ export default function Home() {
             onToggle={handleToggle}
             onToast={setToast}
           />
-          <ActivityFeed log={state.log} />
         </>
       )}
 

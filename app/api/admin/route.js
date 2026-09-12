@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { updateState, StoreNotConfiguredError } from "../../../lib/store";
-import { ADMIN_PIN, createInitialState, logEvent } from "../../../lib/gameData";
+import { ADMIN_PIN, createInitialState, logEvent, pushLog } from "../../../lib/gameData";
 import { startTimer, pauseTimer, resetTimer, computeRemainingSeconds } from "../../../lib/timer";
 import {
   adminSetCell,
@@ -100,6 +100,7 @@ export async function POST(request) {
           break;
         case "resetGame": {
           const fresh = createInitialState();
+          pushLog(fresh, "The Taskmaster reset the entire game.");
           logEvent(fresh, "game_reset", {});
           return fresh;
         }
@@ -107,7 +108,7 @@ export async function POST(request) {
           throw new Error(`Unknown admin action: ${type}`);
       }
       return draft;
-    }, { clearEventsFirst: type === "resetGame" });
+    }, { clearHistoryFirst: type === "resetGame" });
     return NextResponse.json({
       ...next,
       timer: { ...next.timer, remainingSeconds: computeRemainingSeconds(next.timer) },
